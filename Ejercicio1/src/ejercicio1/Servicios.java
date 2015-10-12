@@ -1,17 +1,21 @@
 package ejercicio1;
 
+import java.io.*;
 
 public class Servicios {
 	
 	protected double ope1;
 	protected double ope2;
 	protected double res;
-	//protected int id=0;
+	protected String signoOperacion;
+	protected String id="";
+	public int estado=0;
+	protected boolean aut=false;
 	
-	public Servicios(double op1,double op2,double result){
-		ope1=op1;
-		ope2=op2;
-		res=result;;
+		
+	public Servicios (String dato1,String dato2){
+		this.ope1= Double.parseDouble(dato1);
+		this.ope2=Double.parseDouble(dato2);	
 	}
 	
 	
@@ -21,8 +25,10 @@ public class Servicios {
 			//Si es así
 			//Enviamos codigo de OK
 			System.out.println(Mensajes.OK);
+			aut=true;
 			//Y si no, codigo de error y mensaje explicativo
 			System.out.println(Mensajes.ERR);
+			aut=false;
 		}
 	
 	public void logout(){
@@ -30,6 +36,46 @@ public class Servicios {
 		//Cerrar los input/output streams		
 	}
 	
+	
+	public Servicios (DataInputStream dis){
+		try {
+			this.ope1= dis.readDouble();
+			this.ope2=dis.readDouble();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			this.ope1=0.0;
+			this.ope2=0.0;
+			e.printStackTrace();
+		}
+		
+
+		
+	}
+	
+	public void toByteArray (DataOutputStream dos){
+		try {
+			dos.writeDouble(this.ope1);
+			dos.writeDouble(this.ope2);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	
+	}
+	
+	public double Suma(){
+		signoOperacion="+";
+		res=this.getOpe1()+this.getOpe2();
+		return res;
+	}
+	
+	public double Resta(){
+		signoOperacion="-";
+		res=this.getOpe1()-this.getOpe2();
+		return res;
+	}
+		
 	//Nos devolvera el nombre del usuario
 	public void peticion1(){
 		
@@ -80,7 +126,7 @@ public class Servicios {
 
 	public String toString(){
 		String men;
-		men=String.valueOf(getOpe1())+" signoOperacion "+String.valueOf(getOpe2())+" ="+String.valueOf(getRes());
+		men=String.valueOf(getOpe1())+" "+signoOperacion+" "+String.valueOf(getOpe2())+" ="+String.valueOf(getRes());
 		return men;
 	}
 
