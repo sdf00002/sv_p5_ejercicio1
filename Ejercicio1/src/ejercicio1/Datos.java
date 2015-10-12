@@ -10,7 +10,9 @@ public class Datos {
 
 	public Datos(double ope1, double ope2)
 	{
+		this.op1=ope1;
 		this.op2=ope2;
+		
 	}
 	
 	public Datos (String dato1,String dato2){
