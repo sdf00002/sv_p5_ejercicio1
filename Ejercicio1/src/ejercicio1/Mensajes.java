@@ -29,16 +29,18 @@ public class Mensajes {
 			if(d.getComando().equals(Mensajes.OK)){
 				//Comprobamos si el usuario cumple nuestras condiciones
 				if(this.tieneNumero(d.getUsuario())==true && d.getUsuario().length()>=6){
-			this.toByteArray(Mensajes.OK, d.getUsuario(), "Selecciona operacion");
+			this.toByteArray(d, "Selecciona operacion");
 			estado++;
 				}
 				else {
-					this.toByteArray(Mensajes.ERR, d.getUsuario(), "Usuario no valido");
+					Datos d1 = new Datos(Mensajes.ERR,d.getUsuario(),d.getOp1(),d.getOp2(),d.getSigno(),d.getRes());
+					this.toByteArray(d1, "Usuario no valido");
 				}
 			}
-			// Mandamos un mensaje de error
+			// Si el comando recibido no es OK mandamos un mensaje de error
 			else {
-				this.toByteArray(Mensajes.ERR,d.getUsuario(),"Seleccion incorrecta");
+				Datos d2 = new Datos(Mensajes.ERR,d.getUsuario(),d.getOp1(),d.getOp2(),d.getSigno(),d.getRes());
+				this.toByteArray(d2,"Seleccion incorrecta");
 			}
 		} else 
 			if(estado==1){
@@ -58,8 +60,10 @@ public class Mensajes {
 						this.toByteArray(dat);
 					}
 					//Si el signo es incorrecto enviamos mensaje de error
-					else
-					this.toByteArray(Mensajes.ERR, d.getUsuario(),"Signo incorrecto");					
+					else{
+						Datos d3 = new Datos(Mensajes.ERR,d.getUsuario(),d.getOp1(),d.getOp2(),d.getSigno(),d.getRes());
+						this.toByteArray(d3,"Signo incorrecto");					
+						}	
 				}
 				//Si recibimos un quit, salimos
 				else if (d.getComando().equals(Mensajes.QUIT)){
@@ -69,7 +73,8 @@ public class Mensajes {
 			}
 			else
 		if(estado==2){
-		this.toByteArray(Mensajes.QUIT, d.getUsuario(), "Has salido del servicio");
+		Datos d4 = new Datos(Mensajes.QUIT,d.getUsuario(),d.getOp1(),d.getOp2(),d.getSigno(),d.getRes());
+		this.toByteArray(d4, "Has salido del servicio");
 		salida=true;	
 		}
 		
@@ -95,14 +100,14 @@ public class Mensajes {
 		}
 	}
 	
-	public void toByteArray(String cmd,String usu, String cad)
+	public void toByteArray(Datos dat, String cad)
 	{
 		ByteArrayOutputStream bos = new ByteArrayOutputStream(20);
 		DataOutputStream dos = new DataOutputStream(bos);
 		
 		try {
-			dos.writeUTF(cmd);
-			dos.writeUTF(usu);
+			dos.writeUTF(dat.getComando());
+			dos.writeUTF(dat.getUsuario());
 			dos.writeUTF(cad);
 			dos.close();
 			

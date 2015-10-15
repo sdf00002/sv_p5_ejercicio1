@@ -27,17 +27,6 @@ public class Servicios {
 		return res;
 	}
 		
-	//Nos devolvera el nombre del usuario
-	public void peticion1(){
-		
-		
-	}
-	
-	public void peticion2(){
-		
-		
-	}
-
 
 
 	public double getOpe1() {
