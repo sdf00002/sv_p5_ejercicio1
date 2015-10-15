@@ -2,6 +2,10 @@ package ejercicio1;
 
 import java.io.*;
 
+/**
+ * @author Sergio
+ *
+ */
 public class Datos {
 	
 	private double op1,op2,result;
@@ -41,11 +45,6 @@ public class Datos {
 		}
 			Datos d= new Datos(comando,usuario,op1,op2,signo,result);
 			Mensajes m =new Mensajes(d);
-	}
-	
-	//Constructor para rebibir el nombre de usuario
-	public Datos(String usu){
-		this.usuario=usu;	
 	}
 	
 	
