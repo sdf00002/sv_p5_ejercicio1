@@ -25,41 +25,45 @@ public class Datos {
 		
 	
 	//Constructor para recibir los datos
-	public Datos (DataInputStream dis){
+	public Datos (byte[] datos) throws ExcepcionDatos{
+		
+		ByteArrayInputStream bais = new ByteArrayInputStream(datos); 
+		DataInputStream dis = new DataInputStream(bais);
+		
 		try {
-			this.op1= dis.readDouble();
-			this.op2=dis.readDouble();
 			this.comando=dis.readUTF();
+			this.op1= dis.readDouble();
 			this.signo=dis.readUTF();
+			this.op2=dis.readDouble();			
 			this.usuario=dis.readUTF();
 			this.result=dis.readDouble();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			this.op1=0.0;
-			this.op2=0.0;
-			this.comando=Mensajes.ERR;
-			this.signo=" ";
-			this.usuario=" ";
-			this.result=0.0;
-			e.printStackTrace();
+			throw new ExcepcionDatos("Formato Invalido");
 		}
 			Datos d= new Datos(comando,usuario,op1,op2,signo,result);
 			Mensajes m =new Mensajes(d);
 	}
 	
 	
-	public void toByteArray (DataOutputStream dos){
+	public byte[] toByteArray (Datos data){
+		
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(20);
+		DataOutputStream dos = new DataOutputStream(bos);
+		
 		try {
 			dos.writeUTF(comando);
 			dos.writeDouble(this.op1);
 			dos.writeUTF(signo);
-			dos.writeDouble(this.op2);			
+			dos.writeDouble(this.op2);	
+			dos.writeUTF(usuario);
+			dos.writeDouble(result);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-	
+		byte[] bytes =  bos.toByteArray(); // devuelve byte[]
+		return bytes;
 	}
 
 	public String toString()
