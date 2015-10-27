@@ -99,7 +99,7 @@ public class Mensajes {
 	 */
 	public byte[] toByteArray(Datos data)
 	{
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(20);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(29);
 		DataOutputStream dos = new DataOutputStream(bos);
 		
 		try {
@@ -123,9 +123,9 @@ public class Mensajes {
 	 * @param dat datos que queremos pasar a bytes
 	 * @param cad cadena de caracteres que complementa a los datos
 	 */
-	public void toByteArray(Datos dat, String cad)
+	public byte[] toByteArray(Datos dat, String cad)
 	{
-		ByteArrayOutputStream bos = new ByteArrayOutputStream(20);
+		ByteArrayOutputStream bos = new ByteArrayOutputStream(41);
 		DataOutputStream dos = new DataOutputStream(bos);
 		
 		try {
@@ -138,8 +138,10 @@ public class Mensajes {
 			
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			return null;
 		}
+		byte[] bytes =  bos.toByteArray(); // devuelve byte[]
+		return bytes;
 	}
 	
 	/**
