@@ -2,22 +2,26 @@ package ejercicio1;
 
 import java.io.*;
 
-/**
- * @author Sergio
- *
- */
+
+
 public class Mensajes {
-	//PDU formada por: Version+secuencia+comando+payload
+	//PDU formada por: Version+secuencia+tipo+comando+payload
+	
+	//Comandos utilizados en el protocolo
 	public static final String CRLF="\r\n";
 	public static final String OK="+OK";
 	public static final String ERR="-ERR";
 	public static final String QUIT="QUIT";
-	//public static final String PET="PET";
-	protected int longitud,secuencia=0,estado=0;
-	protected static final byte version=1;
-	protected long fecha;
+	//Tipos de mensajes
+	public static final byte MSG_LOGIN=0x01; 
+	public static final byte MSG_OPERACION=0x02;
+	public static final byte MSG_FIN=0X04;
+	
+	protected int secuencia=0;
+	protected static final byte version=1,tipo=0;
 	private boolean salida=false;
-	private String mensaje = "";
+	private String mensaje = "",cmd="";
+	private byte v,type;
 	private Datos data=null;
 
 	
@@ -28,36 +32,36 @@ public class Mensajes {
 		data=d;
 				
 		do {
-		//Dependiendo de la variable est, estariamos en un estado u otro
-		if(estado==0){		
+		//Si recibimos un mensaje del tipo login
+		if(this.getType()==1){		
 			//Comprobamos que se recibe un mensaje OK
-			if(data.getComando().equals(Mensajes.OK)){
-				//Comprobamos si el usuario cumple nuestras condiciones
-				if(this.tieneNumero(data.getUsuario())==true && data.getUsuario().length()>=6 && data.getUsuario().length()<=12){
+			if(this.getCmd().equals(Mensajes.OK)){
+				//Comprobamos si el usuario y la contraseña cumplen nuestras condiciones
+				if(this.tieneNumero(data.getUsuario())==true && data.getUsuario().length()>=6 && data.getUsuario().length()<=12 && data.getContraseña().length()>=6){
 			this.toByteArray(data, "Selecciona operacion");
-			estado++;
 			secuencia++;
 				}
 				else {
-					Datos d1 = new Datos(Mensajes.ERR,data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),data.getRes());
-					this.toByteArray(d1, "Usuario no valido");
+					Datos d1 = new Datos(data.getUsuario(),data.getContraseña());
+					this.toByteArray(d1, "Usuario y/o contraseña no validos");
 					secuencia++;
 				}
 			}
 			// Si el comando recibido no es OK mandamos un mensaje de error
 			else {
-				Datos d2 = new Datos(Mensajes.ERR,data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),data.getRes());
-				this.toByteArray(d2,"Seleccion incorrecta");
+				Datos d2 = new Datos(data.getUsuario(),data.getContraseña());
+				this.toByteArray(d2,"Error en el login");
 				secuencia++;
 			}
 		} else 
-			if(estado==1){
+			//Si recibimos un mensaje de tipo operacion
+			if(this.getType()==2){
 				//Si recibimos un OK
-				if(data.getComando()==Mensajes.OK){
+				if(this.getCmd()==Mensajes.OK){
 					//Si quiere realizar una suma
 					if(data.getSigno().equals("+")){
 						Servicios s = new Servicios(data.getOp1(),data.getOp2());
-						Datos dat = new Datos(data.getComando(),data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),s.Suma());
+						Datos dat = new Datos(data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),s.Suma());
 						this.toByteArray(dat);
 						secuencia++;
 					}
@@ -65,32 +69,51 @@ public class Mensajes {
 					//Si quiere realizar una resta
 					if(d.getSigno().equals("-")){
 						Servicios s = new Servicios(data.getOp1(),data.getOp2());
-						Datos dat = new Datos(data.getComando(),data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),s.Resta());
+						Datos dat = new Datos(data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),s.Resta());
 						this.toByteArray(dat);
 						secuencia++;
 					}
 					//Si el signo es incorrecto enviamos mensaje de error
 					else{
-						Datos d3 = new Datos(Mensajes.ERR,data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),data.getRes());
+						Datos d3 = new Datos(data.getUsuario());
 						this.toByteArray(d3,"Signo incorrecto");
 						secuencia++;
 						}	
 				}
-				//Si recibimos un quit, salimos
-				else if (data.getComando().equals(Mensajes.QUIT)){
-					estado=2;
-					secuencia++;
-				}
 				
 			}
 			else
-		if(estado==2){
-		Datos d4 = new Datos(Mensajes.QUIT,data.getUsuario(),data.getOp1(),data.getOp2(),data.getSigno(),data.getRes());
+				//Si recibimos mensaje de tipo fin salimos
+		if(this.getType()==4){
+		Datos d4 = new Datos(data.getUsuario());
 		this.toByteArray(d4, "Has salido del servicio");
 		salida=true;	
 		}
 		
 		} while (salida=false);
+	}
+	
+	
+/**
+ * @param datos bytes que se reciben
+ * @throws ExcepcionDatos Excepcion que se lanza en caso de error
+ */
+public Mensajes (byte[] datos) throws ExcepcionDatos{
+		
+		ByteArrayInputStream bais = new ByteArrayInputStream(datos); 
+		DataInputStream dis = new DataInputStream(bais);
+		
+		try {
+			this.v=dis.readByte();
+			this.secuencia=dis.readInt();
+			this.type=dis.readByte();
+			this.cmd=dis.readUTF();
+			Datos dat=new Datos(dis,type);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			throw new ExcepcionDatos("Formato Invalido");
+		}
+		
 	}
 	
 	
@@ -105,9 +128,9 @@ public class Mensajes {
 		try {
 			dos.write(version);
 			dos.writeInt(secuencia);
-			dos.writeUTF(data.getComando());
-			dos.writeUTF(data.getUsuario());
-			dos.writeDouble(data.getRes());
+			dos.write(tipo);
+			dos.writeUTF(cmd);
+			dos.write(data.toByteArray(data));
 			dos.close();
 			
 		} catch (IOException e) {
@@ -131,8 +154,9 @@ public class Mensajes {
 		try {
 			dos.write(version);
 			dos.writeInt(secuencia);
-			dos.writeUTF(dat.getComando());
-			dos.writeUTF(dat.getUsuario());
+			dos.write(tipo);
+			dos.writeUTF(cmd);
+			dos.write(data.toByteArray(data));
 			dos.writeUTF(cad);
 			dos.close();
 			
@@ -143,6 +167,10 @@ public class Mensajes {
 		byte[] bytes =  bos.toByteArray(); // devuelve byte[]
 		return bytes;
 	}
+	
+	
+	
+	
 	
 	/**
 	 * @param word String que pasamos para comprobar si contiene algun numero
@@ -181,13 +209,23 @@ else
 		return mensaje;
 	}
 	
+	
 	/**
-	 * @param mensaje Asigna la cadena que le pasamos a la variable mensaje
+	 * @return el tipo de mensaje
 	 */
-	public void setMensaje(String mensaje) {
-		this.mensaje = mensaje;
+	public byte getType() {
+		return type;
 	}
-	
-	
+
+
+	/**
+	 * @return el comando
+	 */
+	public String getCmd() {
+		return cmd;
+	}
+
+
+
 
 }
